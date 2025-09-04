@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Daftar Tugas</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    form {
+      max-width: 650px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    select,
+    input,
+    button {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      flex: 1;
+    }
+
+    button {
+      flex: none;
+      cursor: pointer;
+      background: #3498db;
+      color: white;
+      border: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    #taskList {
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .task-card {
+      background: white;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: 0.3s;
+    }
+
+    .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .task-info {
+      flex: 1;
+    }
+
+    .task-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .deadline {
+      font-size: 14px;
+      color: #e74c3c;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .delete-btn:hover {
+      background: #c0392b;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>📌 Daftar Tugas</h1>
+
+  <form id="taskForm">
+    <!-- Dropdown Matkul -->
+    <select id="taskMatkul" required>
+      <option value="" disabled selected>Pilih Mata Kuliah...</option>
+      <option value="Konsep Pemrograman">Konsep Pemrograman</option>
+      <option value="Konsep Teknologi Informasi">Konsep Teknologi Informasi</option>
+      <option value="Praktek Konsep Pemrograman">Praktek Konsep Pemrograman</option>
+      <option value="Logika dan Algoritma">Logika dan Algoritma</option>
+      <option value="Bahasa Inggris Teknik">Bahasa Inggris Teknik</option>
+      <option value="Keterampilan Non Teknis">Keterampilan Non Teknis</option>
+      <option value="Pancasila">Pancasila</option>
+      <option value="Dasar Sistem Informasi">Dasar Sistem Informasi</option>
+      <option value="Matematika">Matematika</option>
+      <option value="Workshop Desain Web">Workshop Desain Web</option>
+    </select>
+
+    <!-- Dropdown Platform -->
+    <select id="taskPlatform" required>
+      <option value="" disabled selected>Pilih Platform...</option>
+      <option value="Ethol">Ethol</option>
+      <option value="Classroom">Classroom</option>
+      <option value="Lain-lain">Lain-lain</option>
+    </select>
+
+    <!-- Deadline -->
+    <input type="date" id="taskDeadline" required>
+    <button type="submit">Tambah</button>
+  </form>
+
+  <div id="taskList"></div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxAAJxPNDKmZalaw7KiP0eIFpHRmGySIaqtKPED_S8EEL9Xdv-PiTmQZOSc88TglRsa/exec"; // ganti dengan URL dari Apps Script
+
+    async function loadTasks() {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "get" })
+      });
+      const tasks = await res.json();
+      const list = document.getElementById("taskList");
+      list.innerHTML = "";
+      tasks.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "task-card";
+        div.innerHTML = `
+        <div class="task-info">
+          <div class="task-title">${t.matkul} (${t.platform})</div>
+          <div class="deadline">Deadline: ${t.deadline}</div>
+        </div>
+        <button class="delete-btn" onclick="deleteTask(${t.id})">Hapus</button>
+      `;
+        list.appendChild(div);
+      });
+    }
+
+    async function deleteTask(id) {
+      await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "delete", id: id })
+      });
+      loadTasks();
+    }
+
+    document.getElementById("taskForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const matkul = document.getElementById("taskMatkul").value;
+      const platform = document.getElementById("taskPlatform").value;
+      const deadline = document.getElementById("taskDeadline").value;
+
+      await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "add",
+          matkul: matkul,
+          platform: platform,
+          deadline: deadline
+        })
+      });
+
+      e.target.reset();
+      loadTasks();
+    });
+
+    loadTasks();
+  </script>
+</body>
+
+</html>
